@@ -91,13 +91,25 @@ func TestDiskQueue(t *testing.T) {
 	NotNil(t, dq)
 	Equal(t, int64(0), dq.Depth())
 
+	msgOut := dq.Peek()
+        Nil(t, msgOut)
+
 	msg := []byte("test")
 	err = dq.Put(msg)
 	Nil(t, err)
 	Equal(t, int64(1), dq.Depth())
 
-	msgOut := <-dq.ReadChan()
+
+	msgOut = dq.Peek()
 	Equal(t, msg, msgOut)
+	msgOut = dq.Peek()
+        Equal(t, msg, msgOut)
+
+	msgOut = <-dq.ReadChan()
+	Equal(t, msg, msgOut)
+
+	msgOut = dq.Peek()
+        Nil(t, msgOut)
 }
 
 func TestDiskQueueRoll(t *testing.T) {
@@ -165,6 +177,8 @@ func TestDiskQueueEmpty(t *testing.T) {
 
 	numFiles := dq.(*diskQueue).writeFileNum
 	dq.Empty()
+	outMsg := dq.Peek()
+	Nil(t, outMsg)
 
 	assertFileNotExist(t, dq.(*diskQueue).metaDataFileName())
 	for i := int64(0); i <= numFiles; i++ {
