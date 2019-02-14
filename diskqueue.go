@@ -149,7 +149,7 @@ func (d *diskQueue) ReadChan() chan []byte {
 }
 
 func (d *diskQueue) Peek() []byte {
-	return <- d.peekChan
+	return <-d.peekChan
 }
 
 // Put writes a []byte to the queue
@@ -635,6 +635,7 @@ func (d *diskQueue) ioLoop() {
 			}
 			r = d.readChan
 		} else {
+			dataRead = nil
 			r = nil
 		}
 
@@ -642,7 +643,6 @@ func (d *diskQueue) ioLoop() {
 		// the Go channel spec dictates that nil channel operations (read or write)
 		// in a select are skipped, we set r to d.readChan only when there is data to read
 		case r <- dataRead:
-			dataRead = nil
 			count++
 			// moveForward sets needSync flag if a file is removed
 			d.moveForward()
@@ -650,7 +650,6 @@ func (d *diskQueue) ioLoop() {
 			// peek
 		case <-d.emptyChan:
 			d.emptyResponseChan <- d.deleteAllFiles()
-			dataRead = nil
 			count = 0
 		case dataWrite := <-d.writeChan:
 			count++

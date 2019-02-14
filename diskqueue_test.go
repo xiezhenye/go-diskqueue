@@ -92,24 +92,35 @@ func TestDiskQueue(t *testing.T) {
 	Equal(t, int64(0), dq.Depth())
 
 	msgOut := dq.Peek()
-        Nil(t, msgOut)
+	Nil(t, msgOut)
 
 	msg := []byte("test")
+	msg1 := []byte("test1")
+
 	err = dq.Put(msg)
 	Nil(t, err)
 	Equal(t, int64(1), dq.Depth())
 
-
 	msgOut = dq.Peek()
 	Equal(t, msg, msgOut)
 	msgOut = dq.Peek()
-        Equal(t, msg, msgOut)
+	Equal(t, msg, msgOut)
+
+	err = dq.Put(msg1)
+	Nil(t, err)
+	Equal(t, int64(2), dq.Depth())
 
 	msgOut = <-dq.ReadChan()
 	Equal(t, msg, msgOut)
 
 	msgOut = dq.Peek()
-        Nil(t, msgOut)
+	Equal(t, msg1, msgOut)
+
+	msgOut = <-dq.ReadChan()
+	Equal(t, msg1, msgOut)
+
+	msgOut = dq.Peek()
+	Nil(t, msgOut)
 }
 
 func TestDiskQueueRoll(t *testing.T) {
